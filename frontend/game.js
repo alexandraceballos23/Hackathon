@@ -92,8 +92,9 @@ function setupControls() {
   document.getElementById("reset-btn").addEventListener("click", resetGame)
   document.getElementById("close-mission-btn").addEventListener("click", closeMissionModal)
   document.getElementById("play-again-btn").addEventListener("click", resetGame)
-  document.getElementById("start-mission-btn").addEventListener("click", startMissionGameplay)
+  document.getElementById("start-mission-btn").addEventListener("click", openGameModal)
   document.getElementById("continue-btn").addEventListener("click", closeCompletionModal)
+  document.getElementById("close-game-btn").addEventListener("click", closeGameModal)
 
   setupQuiz()
 }
@@ -339,6 +340,8 @@ function handleCanvasClick(e) {
 }
 
 function showMissionModal(mission, introMessage) {
+  console.log("[v0] Mostrando modal de misión:", mission.zone_id)
+
   const modal = document.getElementById("mission-modal")
 
   document.getElementById("mission-title").textContent = mission.title
@@ -359,60 +362,15 @@ function showMissionModal(mission, introMessage) {
 
   document.getElementById("mission-intro-text").textContent = welcomeMessages[mission.zone_id] || introMessage
 
-  document.getElementById("mission-intro").classList.add("hidden")
-  document.getElementById("mission-gameplay").classList.remove("hidden")
+  document.getElementById("mission-intro").classList.remove("hidden")
+  document.getElementById("mission-gameplay").classList.add("hidden")
 
   modal.classList.remove("hidden")
 
   window.currentMission = mission
+  missionProgress = 0
 
-  const gameArea = document.getElementById("mission-game-area")
-  gameArea.innerHTML = ""
-
-  switch (mission.type) {
-    case "click_game":
-      generateClickGame(gameArea, mission)
-      break
-    case "drag_drop":
-      generateDragDropGame(gameArea, mission)
-      break
-    case "multiple_choice":
-      generateMultipleChoiceGame(gameArea, mission)
-      break
-    case "sequence_game":
-      generateSequenceGame(gameArea, mission)
-      break
-    case "slider_game":
-      generateSliderGame(gameArea, mission)
-      break
-  }
-}
-
-function startMissionGameplay() {
-  document.getElementById("mission-intro").classList.add("hidden")
-  document.getElementById("mission-gameplay").classList.remove("hidden")
-
-  const mission = window.currentMission
-  const gameArea = document.getElementById("mission-game-area")
-  gameArea.innerHTML = ""
-
-  switch (mission.type) {
-    case "click_game":
-      generateClickGame(gameArea, mission)
-      break
-    case "drag_drop":
-      generateDragDropGame(gameArea, mission)
-      break
-    case "multiple_choice":
-      generateMultipleChoiceGame(gameArea, mission)
-      break
-    case "sequence_game":
-      generateSequenceGame(gameArea, mission)
-      break
-    case "slider_game":
-      generateSliderGame(gameArea, mission)
-      break
-  }
+  console.log("[v0] Modal mostrado correctamente")
 }
 
 function generateClickGame(container, mission) {
@@ -440,13 +398,15 @@ function generateClickGame(container, mission) {
 }
 
 function generateDragDropGame(container, mission) {
+  console.log("[v0] Generando juego de reciclaje")
+
   container.className = "mission-game-area recycling-game"
 
   const instructions = document.createElement("div")
   instructions.className = "game-instructions"
   instructions.innerHTML = `
-    <h3>♻️ Juego de Reciclaje</h3>
-    <p>Arrastra cada elemento al contenedor correcto. Debes clasificar todos los elementos para completar la misión.</p>
+    <h3 style="font-family: 'Press Start 2P', cursive; font-size: 0.8rem; margin-bottom: 15px; color: var(--dark-forest); line-height: 1.6;">♻️ Juego de Reciclaje</h3>
+    <p style="font-size: 1rem; color: var(--earth-green); margin-bottom: 20px;">Arrastra cada elemento al contenedor correcto. Debes clasificar TODOS los elementos para completar la misión.</p>
   `
   container.appendChild(instructions)
 
@@ -481,6 +441,7 @@ function generateDragDropGame(container, mission) {
     `
 
     itemEl.addEventListener("dragstart", (e) => {
+      console.log("[v0] Arrastrando:", item.name)
       e.dataTransfer.setData("type", item.type)
       e.dataTransfer.setData("id", item.id)
       itemEl.classList.add("dragging")
@@ -523,6 +484,8 @@ function generateDragDropGame(container, mission) {
       const itemId = e.dataTransfer.getData("id")
       const binType = binEl.dataset.type
 
+      console.log("[v0] Drop:", itemType, "en", binType)
+
       if (itemType === binType) {
         const draggedItem = document.querySelector(`.draggable-item[data-id="${itemId}"]`)
         if (draggedItem) {
@@ -534,7 +497,13 @@ function generateDragDropGame(container, mission) {
           const totalCount = items.filter((i) => i.type === binType).length
           countEl.textContent = `${currentCount}/${totalCount}`
 
-          updateMissionProgress()
+          const remainingItems = document.querySelectorAll(".draggable-item")
+          console.log("[v0] Elementos restantes:", remainingItems.length)
+
+          if (remainingItems.length === 0) {
+            console.log("[v0] Todos los elementos clasificados!")
+            updateMissionProgress(items.length)
+          }
 
           showFeedback(binEl, "¡Correcto! ✓", "success")
         }
@@ -692,9 +661,9 @@ function updateMissionProgress(value) {
     missionProgress++
   }
 
-  document.getElementById("mission-progress").textContent = missionProgress
+  document.getElementById("game-progress").textContent = missionProgress
 
-  const target = Number.parseInt(document.getElementById("mission-target").textContent)
+  const target = Number.parseInt(document.getElementById("game-target").textContent)
 
   if (missionProgress >= target) {
     setTimeout(() => {
@@ -713,7 +682,7 @@ async function completeMission(success) {
 
     const data = await response.json()
 
-    closeMissionModal()
+    closeGameModal()
 
     if (data.all_completed) {
       showVictoryModal()
@@ -759,6 +728,8 @@ function addReward(zoneId) {
 }
 
 async function handleZoneClick(zoneId) {
+  console.log("[v0] Click en zona:", zoneId)
+
   const zone = gameState.zones[zoneId]
 
   if (!zone.unlocked) {
@@ -781,12 +752,14 @@ async function handleZoneClick(zoneId) {
     const data = await response.json()
 
     if (response.ok) {
+      console.log("[v0] Zona iniciada correctamente, mostrando modal")
       showMissionModal(data.mission, data.message)
     } else {
       alert(data.error)
     }
   } catch (error) {
     console.error("[v0] Error al iniciar zona:", error)
+    alert("Error al iniciar la misión. Verifica que el backend esté corriendo.")
   }
 }
 
@@ -815,6 +788,53 @@ async function resetGame() {
   } catch (error) {
     console.error("[v0] Error al reiniciar:", error)
   }
+}
+
+function openGameModal() {
+  console.log("[v0] Abriendo modal de juego")
+
+  // Cerrar modal de intro
+  document.getElementById("mission-modal").classList.add("hidden")
+
+  // Abrir modal de juego
+  const gameModal = document.getElementById("game-modal")
+  const mission = window.currentMission
+
+  document.getElementById("game-modal-title").textContent = mission.title
+  document.getElementById("game-modal-description").textContent = mission.description
+  document.getElementById("game-target").textContent = mission.target
+  document.getElementById("game-progress").textContent = "0"
+
+  gameModal.classList.remove("hidden")
+
+  // Generar el juego
+  const gameArea = document.getElementById("game-area")
+  gameArea.innerHTML = ""
+
+  switch (mission.type) {
+    case "click_game":
+      generateClickGame(gameArea, mission)
+      break
+    case "drag_drop":
+      generateDragDropGame(gameArea, mission)
+      break
+    case "multiple_choice":
+      generateMultipleChoiceGame(gameArea, mission)
+      break
+    case "sequence_game":
+      generateSequenceGame(gameArea, mission)
+      break
+    case "slider_game":
+      generateSliderGame(gameArea, mission)
+      break
+  }
+
+  console.log("[v0] Modal de juego abierto con tipo:", mission.type)
+}
+
+function closeGameModal() {
+  document.getElementById("game-modal").classList.add("hidden")
+  missionProgress = 0
 }
 
 document.addEventListener("DOMContentLoaded", initGame)
