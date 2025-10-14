@@ -1,4 +1,4 @@
-# Hackathon// ... existing code ...
+// ... existing code ...
 
 ### 2. Estructura del proyecto
 
@@ -39,3 +39,4 @@ python app.py
 
 ```typescriptreact file="requirements.txt" isDeleted="true"
 ...deleted...
+

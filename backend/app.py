@@ -6,154 +6,186 @@ from datetime import datetime
 app = Flask(__name__)
 CORS(app)
 
-# Estado del juego
 game_state = {
     "energy": 100,
-    "pollution": 0,
-    "health": 100,
+    "eco_points": 0,
     "level": 1,
-    "score": 0,
-    "missions_completed": 0,
+    "player_position": {"x": 50, "y": 50},  # Posición de EcoBot en el mapa
+    "zones": {
+        "casa": {"unlocked": True, "completed": False, "name": "Casa Eficiente"},
+        "solar": {"unlocked": False, "completed": False, "name": "Parque Solar"},
+        "fabrica": {"unlocked": False, "completed": False, "name": "Fábrica Sostenible"},
+        "rio": {"unlocked": False, "completed": False, "name": "Planta Hidroeléctrica"},
+        "ciudad": {"unlocked": False, "completed": False, "name": "Ciudad Verde"}
+    },
     "current_mission": None,
-    "buildings": {
-        "solar_panels": {"active": True, "efficiency": 80},
-        "wind_turbines": {"active": True, "efficiency": 70},
-        "coal_plant": {"active": False, "efficiency": 90},
-        "data_center": {"active": True, "consumption": 30},
-        "city_lights": {"active": True, "consumption": 20},
-        "factories": {"active": True, "consumption": 40}
-    }
+    "missions_completed": 0,
+    "ecobot_message": "¡Bienvenido, guardián del planeta! Comencemos en la Casa."
 }
 
-# Misiones disponibles
-missions = [
-    {
-        "id": 1,
-        "title": "Optimizar Paneles Solares",
-        "description": "Ajusta la eficiencia de los paneles solares para maximizar la energía limpia",
-        "energy_reward": 20,
-        "pollution_penalty": -5,
-        "difficulty": "easy"
+zone_missions = {
+    "casa": {
+        "title": "Apaga las Luces",
+        "description": "Apaga 5 luces que están encendidas antes de que se acabe el tiempo",
+        "type": "click_game",
+        "target": 5,
+        "time_limit": 30,
+        "reward": 100,
+        "next_zone": "solar"
     },
-    {
-        "id": 2,
-        "title": "Apagar Luces Innecesarias",
-        "description": "Reduce el consumo energético de la ciudad apagando luces no esenciales",
-        "energy_reward": 15,
-        "pollution_penalty": -3,
-        "difficulty": "easy"
+    "solar": {
+        "title": "Conecta los Paneles",
+        "description": "Conecta los paneles solares en el orden correcto",
+        "type": "sequence_game",
+        "target": 4,
+        "time_limit": 45,
+        "reward": 150,
+        "next_zone": "fabrica"
     },
-    {
-        "id": 3,
-        "title": "Reparar Turbinas Eólicas",
-        "description": "Las turbinas necesitan mantenimiento para funcionar al máximo",
-        "energy_reward": 25,
-        "pollution_penalty": -7,
-        "difficulty": "medium"
+    "fabrica": {
+        "title": "Optimiza la Producción",
+        "description": "Ajusta las máquinas para reducir el consumo sin afectar la producción",
+        "type": "slider_game",
+        "target": 3,
+        "time_limit": 60,
+        "reward": 200,
+        "next_zone": "rio"
     },
-    {
-        "id": 4,
-        "title": "Optimizar Centro de Datos",
-        "description": "Reduce el consumo del centro de datos sin afectar su rendimiento",
-        "energy_reward": 30,
-        "pollution_penalty": -10,
-        "difficulty": "hard"
+    "rio": {
+        "title": "Controla el Flujo",
+        "description": "Mantén el flujo de agua en el nivel óptimo",
+        "type": "balance_game",
+        "target": 30,
+        "time_limit": 45,
+        "reward": 250,
+        "next_zone": "ciudad"
     },
-    {
-        "id": 5,
-        "title": "Cerrar Planta de Carbón",
-        "description": "Desactiva la planta de carbón y compensa con energías renovables",
-        "energy_reward": 40,
-        "pollution_penalty": -20,
-        "difficulty": "hard"
+    "ciudad": {
+        "title": "Limpia el Smog",
+        "description": "Limpia las nubes contaminantes tocándolas",
+        "type": "click_game",
+        "target": 10,
+        "time_limit": 60,
+        "reward": 300,
+        "next_zone": None
     }
-]
-
-def get_ecobot_advice():
-    """IA simple que analiza el estado y da consejos"""
-    advice = []
-    
-    if game_state["pollution"] > 70:
-        advice.append("⚠️ Nivel de contaminación crítico! Desactiva fuentes contaminantes inmediatamente.")
-    elif game_state["pollution"] > 40:
-        advice.append("🌍 La contaminación está aumentando. Considera usar más energías renovables.")
-    
-    if game_state["energy"] < 30:
-        advice.append("⚡ Energía baja! Activa más fuentes de energía o reduce el consumo.")
-    elif game_state["energy"] > 80:
-        advice.append("✅ Excelente gestión energética! El planeta está prosperando.")
-    
-    if game_state["buildings"]["coal_plant"]["active"]:
-        advice.append("🏭 La planta de carbón está activa. Intenta usar energías limpias.")
-    
-    if game_state["health"] < 50:
-        advice.append("💔 La salud del planeta está en peligro. Equilibra energía y medio ambiente.")
-    
-    if not advice:
-        advice.append("🤖 Todo está bajo control. Sigue así, guardián del planeta!")
-    
-    return random.choice(advice)
-
-def update_game_state():
-    """Actualiza el estado del juego basado en las decisiones"""
-    buildings = game_state["buildings"]
-    
-    # Calcular producción de energía
-    energy_production = 0
-    if buildings["solar_panels"]["active"]:
-        energy_production += buildings["solar_panels"]["efficiency"] * 0.3
-    if buildings["wind_turbines"]["active"]:
-        energy_production += buildings["wind_turbines"]["efficiency"] * 0.25
-    if buildings["coal_plant"]["active"]:
-        energy_production += buildings["coal_plant"]["efficiency"] * 0.5
-    
-    # Calcular consumo de energía
-    energy_consumption = 0
-    if buildings["data_center"]["active"]:
-        energy_consumption += buildings["data_center"]["consumption"]
-    if buildings["city_lights"]["active"]:
-        energy_consumption += buildings["city_lights"]["consumption"]
-    if buildings["factories"]["active"]:
-        energy_consumption += buildings["factories"]["consumption"]
-    
-    # Actualizar energía
-    energy_balance = energy_production - energy_consumption
-    game_state["energy"] = max(0, min(100, game_state["energy"] + energy_balance * 0.1))
-    
-    # Calcular contaminación
-    pollution_increase = 0
-    if buildings["coal_plant"]["active"]:
-        pollution_increase += 2
-    if buildings["factories"]["active"]:
-        pollution_increase += 1
-    if buildings["city_lights"]["active"]:
-        pollution_increase += 0.5
-    
-    pollution_decrease = 0
-    if buildings["solar_panels"]["active"]:
-        pollution_decrease += 0.5
-    if buildings["wind_turbines"]["active"]:
-        pollution_decrease += 0.5
-    
-    game_state["pollution"] = max(0, min(100, game_state["pollution"] + pollution_increase - pollution_decrease))
-    
-    # Calcular salud del planeta
-    health_factor = (game_state["energy"] * 0.5) - (game_state["pollution"] * 0.5)
-    game_state["health"] = max(0, min(100, game_state["health"] + health_factor * 0.05))
-    
-    # Actualizar puntuación
-    if game_state["health"] > 70 and game_state["energy"] > 50:
-        game_state["score"] += 10
-    elif game_state["health"] < 30 or game_state["energy"] < 20:
-        game_state["score"] = max(0, game_state["score"] - 5)
+}
 
 @app.route('/api/game/state', methods=['GET'])
 def get_game_state():
     """Obtener el estado actual del juego"""
-    update_game_state()
+    return jsonify(game_state)
+
+@app.route('/api/player/move', methods=['POST'])
+def move_player():
+    """Mover al jugador (EcoBot) en el mapa"""
+    data = request.json
+    direction = data.get('direction')
+    
+    # Movimiento con teclas
+    if direction == 'left':
+        game_state["player_position"]["x"] = max(0, game_state["player_position"]["x"] - 5)
+    elif direction == 'right':
+        game_state["player_position"]["x"] = min(100, game_state["player_position"]["x"] + 5)
+    elif direction == 'up':
+        game_state["player_position"]["y"] = max(0, game_state["player_position"]["y"] - 5)
+    elif direction == 'down':
+        game_state["player_position"]["y"] = min(100, game_state["player_position"]["y"] + 5)
+    
+    return jsonify({"position": game_state["player_position"]})
+
+@app.route('/api/zone/start', methods=['POST'])
+def start_zone():
+    """Iniciar una misión en una zona"""
+    data = request.json
+    zone_id = data.get('zone_id')
+    
+    if zone_id not in game_state["zones"]:
+        return jsonify({"error": "Zona no encontrada"}), 404
+    
+    if not game_state["zones"][zone_id]["unlocked"]:
+        return jsonify({"error": "Zona bloqueada"}), 403
+    
+    if game_state["zones"][zone_id]["completed"]:
+        return jsonify({"error": "Zona ya completada"}), 400
+    
+    mission = zone_missions[zone_id]
+    game_state["current_mission"] = {
+        "zone_id": zone_id,
+        **mission
+    }
+    
+    # Mensajes de EcoBot al iniciar
+    messages = {
+        "casa": "¡Bienvenido a la Casa Eficiente! Aquí hay muchas luces encendidas innecesariamente. ¿Sabías que apagar las luces cuando no las usas puede reducir tu consumo hasta un 20%? ¡Ayúdame a apagarlas todas!",
+        "solar": "¡Llegamos al Parque Solar! Los paneles solares convierten la luz del sol en electricidad limpia. Pero deben estar bien conectados para funcionar. ¿Me ayudas a conectarlos correctamente?",
+        "fabrica": "Esta es la Fábrica Sostenible. Las máquinas consumen mucha energía, pero podemos optimizarlas sin afectar la producción. Ajusta cada máquina al nivel óptimo de eficiencia.",
+        "rio": "¡Estamos en la Planta Hidroeléctrica! El agua en movimiento genera energía limpia. Debemos mantener el flujo en el nivel perfecto para maximizar la producción sin dañar el ecosistema.",
+        "ciudad": "¡Llegamos a la Ciudad Verde! La contaminación del aire afecta la salud de todos. Limpia las nubes de smog tocándolas. Cada nube que limpies mejora la calidad del aire."
+    }
+    
+    game_state["ecobot_message"] = messages.get(zone_id, "¡Adelante!")
+    
     return jsonify({
-        **game_state,
-        "ecobot_advice": get_ecobot_advice()
+        "mission": game_state["current_mission"],
+        "message": messages.get(zone_id, "¡Adelante!")
+    })
+
+@app.route('/api/mission/complete', methods=['POST'])
+def complete_mission():
+    """Completar la misión actual"""
+    if not game_state["current_mission"]:
+        return jsonify({"error": "No hay misión activa"}), 400
+    
+    data = request.json
+    success = data.get('success', False)
+    
+    if not success:
+        game_state["current_mission"] = None
+        game_state["ecobot_message"] = "No te preocupes, inténtalo de nuevo. ¡Tú puedes!"
+        return jsonify({"message": "Misión fallida", "state": game_state})
+    
+    mission = game_state["current_mission"]
+    zone_id = mission["zone_id"]
+    
+    # Marcar zona como completada
+    game_state["zones"][zone_id]["completed"] = True
+    game_state["eco_points"] += mission["reward"]
+    game_state["missions_completed"] += 1
+    
+    # Desbloquear siguiente zona
+    next_zone = mission.get("next_zone")
+    if next_zone and next_zone in game_state["zones"]:
+        game_state["zones"][next_zone]["unlocked"] = True
+    
+    # Subir de nivel cada 2 misiones
+    if game_state["missions_completed"] % 2 == 0:
+        game_state["level"] += 1
+    
+    # Mensajes de EcoBot al completar
+    completion_messages = {
+        "casa": "¡Excelente trabajo! Has reducido el consumo energético un 20%. Dato curioso: Si todos apagáramos las luces innecesarias, ahorraríamos suficiente energía para iluminar una ciudad entera durante un año. 🌎💡",
+        "solar": "¡Perfecto! Los paneles ahora generan energía limpia eficientemente. Dato curioso: En solo una hora, el sol proporciona suficiente energía para abastecer al mundo entero durante un año. ☀️⚡",
+        "fabrica": "¡Increíble! La fábrica ahora es 30% más eficiente y contamina menos. Dato curioso: La industria representa el 40% del consumo energético mundial, pero con optimización podemos reducirlo significativamente. 🏭♻️",
+        "rio": "¡Fantástico! El ecosistema del río está equilibrado y genera energía limpia. Dato curioso: La energía hidroeléctrica es la fuente renovable más utilizada en el mundo, generando el 16% de la electricidad global. 💧🌊",
+        "ciudad": "¡Maravilloso! El aire está más limpio y la gente puede respirar mejor. Dato curioso: Las ciudades verdes con más árboles y menos contaminación tienen habitantes más saludables y felices. 🌆🌳"
+    }
+    
+    game_state["ecobot_message"] = completion_messages.get(zone_id, "¡Misión completada!")
+    
+    # Verificar si completó todas las misiones
+    all_completed = all(zone["completed"] for zone in game_state["zones"].values())
+    if all_completed:
+        game_state["ecobot_message"] = "¡Felicidades, Guardián del Planeta! Has completado todas las misiones. Ahora sabes que cada acción cuenta para cuidar nuestro mundo. ¡Sigue aplicando lo aprendido en tu vida diaria! 🌍✨"
+    
+    completed_mission = game_state["current_mission"]
+    game_state["current_mission"] = None
+    
+    return jsonify({
+        "message": completion_messages.get(zone_id, "¡Misión completada!"),
+        "completed_mission": completed_mission,
+        "state": game_state,
+        "all_completed": all_completed
     })
 
 @app.route('/api/game/reset', methods=['POST'])
@@ -162,97 +194,26 @@ def reset_game():
     global game_state
     game_state = {
         "energy": 100,
-        "pollution": 0,
-        "health": 100,
+        "eco_points": 0,
         "level": 1,
-        "score": 0,
-        "missions_completed": 0,
+        "player_position": {"x": 50, "y": 50},
+        "zones": {
+            "casa": {"unlocked": True, "completed": False, "name": "Casa Eficiente"},
+            "solar": {"unlocked": False, "completed": False, "name": "Parque Solar"},
+            "fabrica": {"unlocked": False, "completed": False, "name": "Fábrica Sostenible"},
+            "rio": {"unlocked": False, "completed": False, "name": "Planta Hidroeléctrica"},
+            "ciudad": {"unlocked": False, "completed": False, "name": "Ciudad Verde"}
+        },
         "current_mission": None,
-        "buildings": {
-            "solar_panels": {"active": True, "efficiency": 80},
-            "wind_turbines": {"active": True, "efficiency": 70},
-            "coal_plant": {"active": False, "efficiency": 90},
-            "data_center": {"active": True, "consumption": 30},
-            "city_lights": {"active": True, "consumption": 20},
-            "factories": {"active": True, "consumption": 40}
-        }
+        "missions_completed": 0,
+        "ecobot_message": "¡Bienvenido, guardián del planeta! Comencemos en la Casa."
     }
     return jsonify({"message": "Juego reiniciado", "state": game_state})
 
-@app.route('/api/buildings/toggle', methods=['POST'])
-def toggle_building():
-    """Activar/desactivar un edificio"""
-    data = request.json
-    building_name = data.get('building')
-    
-    if building_name in game_state["buildings"]:
-        game_state["buildings"][building_name]["active"] = not game_state["buildings"][building_name]["active"]
-        update_game_state()
-        return jsonify({
-            "message": f"Estado de {building_name} cambiado",
-            "state": game_state
-        })
-    
-    return jsonify({"error": "Edificio no encontrado"}), 404
-
-@app.route('/api/missions/available', methods=['GET'])
-def get_available_missions():
-    """Obtener misiones disponibles"""
-    return jsonify({"missions": missions})
-
-@app.route('/api/missions/start', methods=['POST'])
-def start_mission():
-    """Iniciar una misión"""
-    data = request.json
-    mission_id = data.get('mission_id')
-    
-    mission = next((m for m in missions if m["id"] == mission_id), None)
-    
-    if mission:
-        game_state["current_mission"] = mission
-        return jsonify({
-            "message": "Misión iniciada",
-            "mission": mission
-        })
-    
-    return jsonify({"error": "Misión no encontrada"}), 404
-
-@app.route('/api/missions/complete', methods=['POST'])
-def complete_mission():
-    """Completar la misión actual"""
-    if game_state["current_mission"]:
-        mission = game_state["current_mission"]
-        
-        # Aplicar recompensas
-        game_state["energy"] = min(100, game_state["energy"] + mission["energy_reward"])
-        game_state["pollution"] = max(0, game_state["pollution"] + mission["pollution_penalty"])
-        game_state["score"] += mission["energy_reward"] * 10
-        game_state["missions_completed"] += 1
-        
-        # Subir de nivel cada 3 misiones
-        if game_state["missions_completed"] % 3 == 0:
-            game_state["level"] += 1
-        
-        completed_mission = game_state["current_mission"]
-        game_state["current_mission"] = None
-        
-        update_game_state()
-        
-        return jsonify({
-            "message": "¡Misión completada!",
-            "completed_mission": completed_mission,
-            "state": game_state
-        })
-    
-    return jsonify({"error": "No hay misión activa"}), 400
-
-@app.route('/api/ecobot/advice', methods=['GET'])
-def get_advice():
-    """Obtener consejo de EcoBot"""
-    return jsonify({
-        "advice": get_ecobot_advice(),
-        "timestamp": datetime.now().isoformat()
-    })
+@app.route('/api/ecobot/message', methods=['GET'])
+def get_ecobot_message():
+    """Obtener mensaje actual de EcoBot"""
+    return jsonify({"message": game_state["ecobot_message"]})
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

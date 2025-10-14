@@ -3,193 +3,203 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EcoEnergy - Guardián del Planeta</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>EcoMission: Energía en tus manos</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container-fluid">
-         Header 
-        <header class="row bg-success text-white py-3 mb-4">
-            <div class="col-12 text-center">
-                <h1>🌍 EcoEnergy - Guardián del Planeta</h1>
-                <p class="mb-0">Protege la Tierra equilibrando tecnología y medio ambiente</p>
+    <div class="game-container">
+        <!-- Header rediseñado con mejor estética -->
+        <header class="game-header">
+            <div class="header-content">
+                <h1>EcoMission: Energía en tus manos</h1>
+                <p class="subtitle">Aprende sobre energía sostenible mientras salvas el planeta</p>
+            </div>
+            <div class="stats-bar">
+                <div class="stat-card">
+                    <div class="stat-icon">⭐</div>
+                    <div class="stat-info">
+                        <span class="stat-label">Nivel</span>
+                        <span id="level-value" class="stat-value">1</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🌿</div>
+                    <div class="stat-info">
+                        <span class="stat-label">Eco Puntos</span>
+                        <span id="eco-points-value" class="stat-value">0</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🎯</div>
+                    <div class="stat-info">
+                        <span class="stat-label">Progreso</span>
+                        <span id="missions-completed-value" class="stat-value">0/5</span>
+                    </div>
+                </div>
             </div>
         </header>
 
-         Panel de Estado 
-        <div class="row mb-4">
-            <div class="col-md-3">
-                <div class="card stat-card energy-card">
-                    <div class="card-body">
-                        <h5 class="card-title">⚡ Energía</h5>
-                        <div class="progress mb-2">
-                            <div id="energy-bar" class="progress-bar bg-warning" role="progressbar" style="width: 100%"></div>
+        <!-- EcoBot con animación mejorada -->
+        <div class="ecobot-container">
+            <div class="ecobot-avatar">
+                <div class="robot-body">🤖</div>
+                <div class="robot-antenna"></div>
+            </div>
+            <div class="ecobot-bubble">
+                <p id="ecobot-message">Cargando...</p>
+            </div>
+        </div>
+
+        <!-- Layout mejorado con mapa más grande -->
+        <div class="game-main">
+            <div class="map-section">
+                <!-- Mapa más grande y responsive -->
+                <div class="map-container">
+                    <h2 class="section-title">Mapa Interactivo</h2>
+                    <canvas id="game-canvas"></canvas>
+                    <div class="map-legend">
+                        <span class="legend-item"><span class="legend-dot unlocked"></span> Disponible</span>
+                        <span class="legend-item"><span class="legend-dot completed"></span> Completada</span>
+                        <span class="legend-item"><span class="legend-dot locked"></span> Bloqueada</span>
+                    </div>
+                </div>
+
+                <!-- Panel de premios y quiz debajo del mapa -->
+                <div class="rewards-quiz-section">
+                    <div class="rewards-panel">
+                        <h3>🏆 Premios Desbloqueados</h3>
+                        <div id="rewards-list" class="rewards-list">
+                            <p class="empty-state">Completa misiones para desbloquear premios</p>
                         </div>
-                        <p class="card-text mb-0"><span id="energy-value">100</span>%</p>
+                    </div>
+                    
+                    <div class="quiz-panel">
+                        <h3>❓ Quiz Rápido</h3>
+                        <div id="quiz-content" class="quiz-content">
+                            <p class="quiz-question" id="quiz-question">¿Qué fuente de energía es renovable?</p>
+                            <div class="quiz-options">
+                                <button class="quiz-option" data-answer="correct">Energía Solar</button>
+                                <button class="quiz-option" data-answer="wrong">Carbón</button>
+                                <button class="quiz-option" data-answer="wrong">Petróleo</button>
+                                <button class="quiz-option" data-answer="wrong">Gas Natural</button>
+                            </div>
+                            <p id="quiz-feedback" class="quiz-feedback"></p>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="card stat-card pollution-card">
-                    <div class="card-body">
-                        <h5 class="card-title">🏭 Contaminación</h5>
-                        <div class="progress mb-2">
-                            <div id="pollution-bar" class="progress-bar bg-danger" role="progressbar" style="width: 0%"></div>
-                        </div>
-                        <p class="card-text mb-0"><span id="pollution-value">0</span>%</p>
-                    </div>
+
+            <!-- Panel lateral rediseñado -->
+            <div class="sidebar">
+                <div class="zones-panel">
+                    <h2>Zonas del Mapa</h2>
+                    <div id="zones-list" class="zones-list"></div>
                 </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card stat-card health-card">
-                    <div class="card-body">
-                        <h5 class="card-title">💚 Salud del Planeta</h5>
-                        <div class="progress mb-2">
-                            <div id="health-bar" class="progress-bar bg-success" role="progressbar" style="width: 100%"></div>
-                        </div>
-                        <p class="card-text mb-0"><span id="health-value">100</span>%</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card stat-card score-card">
-                    <div class="card-body">
-                        <h5 class="card-title">🏆 Puntuación</h5>
-                        <h2 class="mb-0"><span id="score-value">0</span></h2>
-                        <p class="card-text mb-0">Nivel: <span id="level-value">1</span></p>
-                    </div>
+                
+                <div class="controls-panel">
+                    <button id="reset-btn" class="btn btn-danger">Reiniciar Juego</button>
                 </div>
             </div>
         </div>
 
-         EcoBot Advisor 
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card ecobot-card">
-                    <div class="card-body">
-                        <h5 class="card-title">🤖 EcoBot - Tu Asistente Inteligente</h5>
-                        <p id="ecobot-advice" class="card-text">Cargando consejos...</p>
+        <!-- Modal de misión mejorado con mensajes de inicio -->
+        <div id="mission-modal" class="modal hidden">
+            <div class="modal-overlay"></div>
+            <div class="modal-content">
+                <div class="mission-header">
+                    <h2 id="mission-title">Misión</h2>
+                    <button id="close-mission-btn" class="close-btn">✕</button>
+                </div>
+                
+                <div class="mission-intro" id="mission-intro">
+                    <div class="ecobot-intro">
+                        <span class="intro-robot">🤖</span>
+                        <p id="mission-intro-text">Mensaje de inicio...</p>
                     </div>
+                    <button id="start-mission-btn" class="btn btn-primary">Comenzar Misión</button>
+                </div>
+                
+                <div class="mission-gameplay hidden" id="mission-gameplay">
+                    <p id="mission-description" class="mission-description">Descripción de la misión</p>
+                    
+                    <div class="mission-stats">
+                        <div class="mission-stat">
+                            <span class="stat-icon">⏱️</span>
+                            <span>Tiempo: <strong id="mission-timer">30</strong>s</span>
+                        </div>
+                        <div class="mission-stat">
+                            <span class="stat-icon">📊</span>
+                            <span>Progreso: <strong id="mission-progress">0</strong>/<strong id="mission-target">5</strong></span>
+                        </div>
+                    </div>
+                    
+                    <div id="mission-game-area" class="mission-game-area"></div>
                 </div>
             </div>
         </div>
 
-        <div class="row">
-             Panel de Control de Edificios 
-            <div class="col-md-6 mb-4">
-                <div class="card">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">🏗️ Control de Infraestructura</h5>
+        <!-- Modal de victoria mejorado -->
+        <div id="victory-modal" class="modal hidden">
+            <div class="modal-overlay"></div>
+            <div class="modal-content victory-content">
+                <div class="victory-animation">
+                    <div class="trophy">🏆</div>
+                    <div class="confetti"></div>
+                </div>
+                <h2>¡Felicidades, Guardián del Planeta!</h2>
+                <p class="victory-subtitle">Has completado todas las misiones de EcoMission</p>
+                
+                <div class="victory-stats">
+                    <div class="victory-stat">
+                        <span class="stat-icon">⭐</span>
+                        <span class="stat-label">Nivel Final</span>
+                        <span id="final-level" class="stat-value">1</span>
                     </div>
-                    <div class="card-body">
-                        <h6 class="text-success">Fuentes de Energía Limpia</h6>
-                        <div class="building-control mb-3">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span>☀️ Paneles Solares</span>
-                                <button class="btn btn-sm btn-success" onclick="toggleBuilding('solar_panels')">
-                                    <span id="solar_panels-status">Activo</span>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="building-control mb-3">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span>💨 Turbinas Eólicas</span>
-                                <button class="btn btn-sm btn-success" onclick="toggleBuilding('wind_turbines')">
-                                    <span id="wind_turbines-status">Activo</span>
-                                </button>
-                            </div>
-                        </div>
-
-                        <h6 class="text-danger mt-4">Fuentes Contaminantes</h6>
-                        <div class="building-control mb-3">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span>🏭 Planta de Carbón</span>
-                                <button class="btn btn-sm btn-secondary" onclick="toggleBuilding('coal_plant')">
-                                    <span id="coal_plant-status">Inactivo</span>
-                                </button>
-                            </div>
-                        </div>
-
-                        <h6 class="text-info mt-4">Consumidores de Energía</h6>
-                        <div class="building-control mb-3">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span>💻 Centro de Datos</span>
-                                <button class="btn btn-sm btn-success" onclick="toggleBuilding('data_center')">
-                                    <span id="data_center-status">Activo</span>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="building-control mb-3">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span>💡 Luces de la Ciudad</span>
-                                <button class="btn btn-sm btn-success" onclick="toggleBuilding('city_lights')">
-                                    <span id="city_lights-status">Activo</span>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="building-control mb-3">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span>🏭 Fábricas</span>
-                                <button class="btn btn-sm btn-success" onclick="toggleBuilding('factories')">
-                                    <span id="factories-status">Activo</span>
-                                </button>
-                            </div>
-                        </div>
+                    <div class="victory-stat">
+                        <span class="stat-icon">🌿</span>
+                        <span class="stat-label">Eco Puntos</span>
+                        <span id="final-points" class="stat-value">0</span>
+                    </div>
+                    <div class="victory-stat">
+                        <span class="stat-icon">🎯</span>
+                        <span class="stat-label">Misiones</span>
+                        <span id="final-missions" class="stat-value">5</span>
                     </div>
                 </div>
-            </div>
-
-             Panel de Misiones 
-            <div class="col-md-6 mb-4">
-                <div class="card">
-                    <div class="card-header bg-warning text-dark">
-                        <h5 class="mb-0">🎯 Misiones Disponibles</h5>
-                    </div>
-                    <div class="card-body">
-                        <div id="current-mission" class="alert alert-info d-none mb-3">
-                            <h6 class="alert-heading">Misión Actual:</h6>
-                            <p id="current-mission-title" class="mb-1"></p>
-                            <p id="current-mission-description" class="mb-2"></p>
-                            <button class="btn btn-success btn-sm" onclick="completeMission()">✅ Completar Misión</button>
-                        </div>
-
-                        <div id="missions-list"></div>
-                    </div>
+                
+                <div class="victory-message">
+                    <h3>Lo que has aprendido:</h3>
+                    <ul>
+                        <li>💡 La eficiencia energética comienza en casa</li>
+                        <li>☀️ Las energías renovables son el futuro</li>
+                        <li>🏭 La industria puede ser sostenible</li>
+                        <li>💧 El agua es un recurso vital que debemos cuidar</li>
+                        <li>🌆 Las ciudades verdes son posibles</li>
+                    </ul>
+                    <p class="final-message">Cada acción cuenta. ¡Sigue cuidando tu mundo!</p>
                 </div>
-
-                 Controles del Juego 
-                <div class="card mt-3">
-                    <div class="card-body text-center">
-                        <button class="btn btn-danger" onclick="resetGame()">🔄 Reiniciar Juego</button>
-                    </div>
-                </div>
+                
+                <button id="play-again-btn" class="btn btn-primary btn-large">Jugar de Nuevo</button>
             </div>
         </div>
 
-         Mapa Visual 
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header bg-info text-white">
-                        <h5 class="mb-0">🗺️ Base Energética</h5>
-                    </div>
-                    <div class="card-body">
-                        <div id="game-map" class="game-map">
-                            <div class="building-icon" id="map-solar">☀️</div>
-                            <div class="building-icon" id="map-wind">💨</div>
-                            <div class="building-icon" id="map-coal">🏭</div>
-                            <div class="building-icon" id="map-city">🏙️</div>
-                            <div class="building-icon" id="map-factory">🏭</div>
-                            <div class="building-icon" id="map-data">💻</div>
-                        </div>
-                    </div>
+        <!-- Modal de completar misión -->
+        <div id="completion-modal" class="modal hidden">
+            <div class="modal-overlay"></div>
+            <div class="modal-content completion-content">
+                <div class="completion-icon">✅</div>
+                <h2>¡Misión Completada!</h2>
+                <p id="completion-message" class="completion-message"></p>
+                <div class="reward-display">
+                    <span class="reward-icon">🌿</span>
+                    <span id="reward-points" class="reward-points">+100</span>
+                    <span class="reward-label">Eco Puntos</span>
                 </div>
+                <button id="continue-btn" class="btn btn-primary">Continuar</button>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="game.js"></script>
 </body>
 </html>
