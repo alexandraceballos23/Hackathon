@@ -2,8 +2,6 @@
 
 ### 2. Estructura del proyecto
 
-Asegúrate de que tu proyecto tenga esta estructura:
-
 \`\`\`
 eco-energy-game/
 ├── backend/
