@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoEnergy - Guardián del Planeta</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container-fluid">
+         Header 
+        <header class="row bg-success text-white py-3 mb-4">
+            <div class="col-12 text-center">
+                <h1>🌍 EcoEnergy - Guardián del Planeta</h1>
+                <p class="mb-0">Protege la Tierra equilibrando tecnología y medio ambiente</p>
+            </div>
+        </header>
+
+         Panel de Estado 
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card stat-card energy-card">
+                    <div class="card-body">
+                        <h5 class="card-title">⚡ Energía</h5>
+                        <div class="progress mb-2">
+                            <div id="energy-bar" class="progress-bar bg-warning" role="progressbar" style="width: 100%"></div>
+                        </div>
+                        <p class="card-text mb-0"><span id="energy-value">100</span>%</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stat-card pollution-card">
+                    <div class="card-body">
+                        <h5 class="card-title">🏭 Contaminación</h5>
+                        <div class="progress mb-2">
+                            <div id="pollution-bar" class="progress-bar bg-danger" role="progressbar" style="width: 0%"></div>
+                        </div>
+                        <p class="card-text mb-0"><span id="pollution-value">0</span>%</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stat-card health-card">
+                    <div class="card-body">
+                        <h5 class="card-title">💚 Salud del Planeta</h5>
+                        <div class="progress mb-2">
+                            <div id="health-bar" class="progress-bar bg-success" role="progressbar" style="width: 100%"></div>
+                        </div>
+                        <p class="card-text mb-0"><span id="health-value">100</span>%</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stat-card score-card">
+                    <div class="card-body">
+                        <h5 class="card-title">🏆 Puntuación</h5>
+                        <h2 class="mb-0"><span id="score-value">0</span></h2>
+                        <p class="card-text mb-0">Nivel: <span id="level-value">1</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+         EcoBot Advisor 
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card ecobot-card">
+                    <div class="card-body">
+                        <h5 class="card-title">🤖 EcoBot - Tu Asistente Inteligente</h5>
+                        <p id="ecobot-advice" class="card-text">Cargando consejos...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+             Panel de Control de Edificios 
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">🏗️ Control de Infraestructura</h5>
+                    </div>
+                    <div class="card-body">
+                        <h6 class="text-success">Fuentes de Energía Limpia</h6>
+                        <div class="building-control mb-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>☀️ Paneles Solares</span>
+                                <button class="btn btn-sm btn-success" onclick="toggleBuilding('solar_panels')">
+                                    <span id="solar_panels-status">Activo</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="building-control mb-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>💨 Turbinas Eólicas</span>
+                                <button class="btn btn-sm btn-success" onclick="toggleBuilding('wind_turbines')">
+                                    <span id="wind_turbines-status">Activo</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <h6 class="text-danger mt-4">Fuentes Contaminantes</h6>
+                        <div class="building-control mb-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>🏭 Planta de Carbón</span>
+                                <button class="btn btn-sm btn-secondary" onclick="toggleBuilding('coal_plant')">
+                                    <span id="coal_plant-status">Inactivo</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <h6 class="text-info mt-4">Consumidores de Energía</h6>
+                        <div class="building-control mb-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>💻 Centro de Datos</span>
+                                <button class="btn btn-sm btn-success" onclick="toggleBuilding('data_center')">
+                                    <span id="data_center-status">Activo</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="building-control mb-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>💡 Luces de la Ciudad</span>
+                                <button class="btn btn-sm btn-success" onclick="toggleBuilding('city_lights')">
+                                    <span id="city_lights-status">Activo</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="building-control mb-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>🏭 Fábricas</span>
+                                <button class="btn btn-sm btn-success" onclick="toggleBuilding('factories')">
+                                    <span id="factories-status">Activo</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+             Panel de Misiones 
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0">🎯 Misiones Disponibles</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="current-mission" class="alert alert-info d-none mb-3">
+                            <h6 class="alert-heading">Misión Actual:</h6>
+                            <p id="current-mission-title" class="mb-1"></p>
+                            <p id="current-mission-description" class="mb-2"></p>
+                            <button class="btn btn-success btn-sm" onclick="completeMission()">✅ Completar Misión</button>
+                        </div>
+
+                        <div id="missions-list"></div>
+                    </div>
+                </div>
+
+                 Controles del Juego 
+                <div class="card mt-3">
+                    <div class="card-body text-center">
+                        <button class="btn btn-danger" onclick="resetGame()">🔄 Reiniciar Juego</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+         Mapa Visual 
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">🗺️ Base Energética</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="game-map" class="game-map">
+                            <div class="building-icon" id="map-solar">☀️</div>
+                            <div class="building-icon" id="map-wind">💨</div>
+                            <div class="building-icon" id="map-coal">🏭</div>
+                            <div class="building-icon" id="map-city">🏙️</div>
+                            <div class="building-icon" id="map-factory">🏭</div>
+                            <div class="building-icon" id="map-data">💻</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>

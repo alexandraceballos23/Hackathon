@@ -1,0 +1,157 @@
+body {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.stat-card {
+  border-radius: 15px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+}
+
+.energy-card {
+  border-left: 5px solid #ffc107;
+}
+
+.pollution-card {
+  border-left: 5px solid #dc3545;
+}
+
+.health-card {
+  border-left: 5px solid #28a745;
+}
+
+.score-card {
+  border-left: 5px solid #17a2b8;
+}
+
+.ecobot-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 15px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  50% {
+    box-shadow: 0 8px 12px rgba(102, 126, 234, 0.4);
+  }
+}
+
+.building-control {
+  padding: 10px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  transition: background 0.3s ease;
+}
+
+.building-control:hover {
+  background: #e9ecef;
+}
+
+.game-map {
+  background: linear-gradient(to bottom, #87ceeb 0%, #98d98e 50%, #8b7355 100%);
+  min-height: 300px;
+  border-radius: 10px;
+  position: relative;
+  overflow: hidden;
+}
+
+.building-icon {
+  font-size: 3rem;
+  position: absolute;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.building-icon:hover {
+  transform: scale(1.2);
+}
+
+#map-solar {
+  top: 20%;
+  left: 15%;
+}
+
+#map-wind {
+  top: 15%;
+  right: 20%;
+}
+
+#map-coal {
+  bottom: 25%;
+  left: 10%;
+}
+
+#map-city {
+  top: 40%;
+  left: 45%;
+}
+
+#map-factory {
+  bottom: 20%;
+  right: 15%;
+}
+
+#map-data {
+  top: 50%;
+  right: 30%;
+}
+
+.mission-card {
+  border-left: 4px solid #ffc107;
+  margin-bottom: 10px;
+  transition: all 0.3s ease;
+}
+
+.mission-card:hover {
+  transform: translateX(5px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.difficulty-easy {
+  color: #28a745;
+}
+
+.difficulty-medium {
+  color: #ffc107;
+}
+
+.difficulty-hard {
+  color: #dc3545;
+}
+
+header {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.card {
+  border-radius: 10px;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.progress {
+  height: 25px;
+  border-radius: 10px;
+}
+
+.btn {
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.btn:hover {
+  transform: scale(1.05);
+}
