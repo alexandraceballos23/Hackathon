@@ -20,13 +20,13 @@ game_state = {
     },
     "current_mission": None,
     "missions_completed": 0,
-    "ecobot_message": "¡Bienvenido, guardián del planeta! Comencemos en la Casa."
+    "ecobot_message": "¡Bienvenido, guardián del planeta! Haz clic en la Casa para comenzar tu primera misión."
 }
 
 zone_missions = {
     "casa": {
         "title": "Apaga las Luces",
-        "description": "Apaga 5 luces que están encendidas antes de que se acabe el tiempo",
+        "description": "Apaga 5 luces que están encendidas innecesariamente",
         "type": "click_game",
         "target": 5,
         "time_limit": 30,
@@ -34,37 +34,37 @@ zone_missions = {
         "next_zone": "solar"
     },
     "solar": {
-        "title": "Conecta los Paneles",
-        "description": "Conecta los paneles solares en el orden correcto",
-        "type": "sequence_game",
-        "target": 4,
+        "title": "Recicla Correctamente",
+        "description": "Arrastra cada residuo al contenedor correcto",
+        "type": "drag_drop",
+        "target": 5,
         "time_limit": 45,
         "reward": 150,
         "next_zone": "fabrica"
     },
     "fabrica": {
-        "title": "Optimiza la Producción",
-        "description": "Ajusta las máquinas para reducir el consumo sin afectar la producción",
-        "type": "slider_game",
+        "title": "Quiz de Eficiencia",
+        "description": "Responde correctamente las preguntas sobre energía",
+        "type": "multiple_choice",
         "target": 3,
         "time_limit": 60,
         "reward": 200,
         "next_zone": "rio"
     },
     "rio": {
-        "title": "Controla el Flujo",
-        "description": "Mantén el flujo de agua en el nivel óptimo",
-        "type": "balance_game",
-        "target": 30,
+        "title": "Conecta los Paneles",
+        "description": "Conecta los paneles solares en el orden correcto",
+        "type": "sequence_game",
+        "target": 4,
         "time_limit": 45,
         "reward": 250,
         "next_zone": "ciudad"
     },
     "ciudad": {
-        "title": "Limpia el Smog",
-        "description": "Limpia las nubes contaminantes tocándolas",
-        "type": "click_game",
-        "target": 10,
+        "title": "Optimiza la Ciudad",
+        "description": "Ajusta los sistemas de la ciudad para máxima eficiencia",
+        "type": "slider_game",
+        "target": 3,
         "time_limit": 60,
         "reward": 300,
         "next_zone": None
@@ -115,13 +115,12 @@ def start_zone():
         **mission
     }
     
-    # Mensajes de EcoBot al iniciar
     messages = {
-        "casa": "¡Bienvenido a la Casa Eficiente! Aquí hay muchas luces encendidas innecesariamente. ¿Sabías que apagar las luces cuando no las usas puede reducir tu consumo hasta un 20%? ¡Ayúdame a apagarlas todas!",
-        "solar": "¡Llegamos al Parque Solar! Los paneles solares convierten la luz del sol en electricidad limpia. Pero deben estar bien conectados para funcionar. ¿Me ayudas a conectarlos correctamente?",
-        "fabrica": "Esta es la Fábrica Sostenible. Las máquinas consumen mucha energía, pero podemos optimizarlas sin afectar la producción. Ajusta cada máquina al nivel óptimo de eficiencia.",
-        "rio": "¡Estamos en la Planta Hidroeléctrica! El agua en movimiento genera energía limpia. Debemos mantener el flujo en el nivel perfecto para maximizar la producción sin dañar el ecosistema.",
-        "ciudad": "¡Llegamos a la Ciudad Verde! La contaminación del aire afecta la salud de todos. Limpia las nubes de smog tocándolas. Cada nube que limpies mejora la calidad del aire."
+        "casa": "🏠 ¡Bienvenido, EcoHéroe! Esta es tu primera misión. Veo muchas luces encendidas sin necesidad. ¿Sabías que apagar las luces cuando no las usas puede reducir tu factura hasta un 20%? Cada bombilla apagada es un paso hacia un planeta más verde. ¡Ayúdame a apagarlas todas! 💡",
+        "solar": "♻️ ¡Excelente trabajo hasta ahora! Llegamos al Centro de Reciclaje. Aquí aprenderás a separar correctamente los residuos. El reciclaje reduce la contaminación y ahorra energía en la producción de nuevos materiales. Arrastra cada elemento al contenedor correcto: plástico, papel, vidrio, metal y orgánico. ¡Cada residuo en su lugar! 🌍",
+        "fabrica": "🏭 ¡Impresionante progreso! Estamos en la Fábrica Sostenible. Es hora de poner a prueba tus conocimientos sobre eficiencia energética. Responde correctamente las preguntas y demuestra que eres un verdadero experto en energía limpia. ¡El conocimiento es poder! 📚",
+        "rio": "💧 ¡Casi lo logras! Llegamos a la Planta Hidroeléctrica. El agua en movimiento genera energía limpia y renovable. Conecta los paneles en el orden correcto para maximizar la producción sin dañar el ecosistema. ¡Cada conexión cuenta! ⚡",
+        "ciudad": "🌆 ¡Última misión, campeón! Bienvenido a la Ciudad Verde. Las ciudades del futuro son eficientes y sostenibles. Ajusta los sistemas de iluminación, transporte y energía para crear la ciudad perfecta. ¡Tú eres el arquitecto del cambio! 🌳"
     }
     
     game_state["ecobot_message"] = messages.get(zone_id, "¡Adelante!")
@@ -206,7 +205,7 @@ def reset_game():
         },
         "current_mission": None,
         "missions_completed": 0,
-        "ecobot_message": "¡Bienvenido, guardián del planeta! Comencemos en la Casa."
+        "ecobot_message": "¡Bienvenido, guardián del planeta! Haz clic en la Casa para comenzar tu primera misión."
     }
     return jsonify({"message": "Juego reiniciado", "state": game_state})
 

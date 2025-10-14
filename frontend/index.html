@@ -5,31 +5,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EcoMission: Energía en tus manos</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="game-container">
-        <!-- Header rediseñado con mejor estética -->
         <header class="game-header">
             <div class="header-content">
-                <h1>EcoMission: Energía en tus manos</h1>
-                <p class="subtitle">Aprende sobre energía sostenible mientras salvas el planeta</p>
+                <h1 class="pixel-title">EcoMission</h1>
+                <p class="subtitle">Energía en tus manos - Salva el planeta con cada decisión</p>
             </div>
             <div class="stats-bar">
-                <div class="stat-card">
+                <div class="stat-card energy">
+                    <div class="stat-icon">⚡</div>
+                    <div class="stat-info">
+                        <span class="stat-label">Energía</span>
+                        <span id="energy-value" class="stat-value">100</span>
+                    </div>
+                </div>
+                <div class="stat-card level">
                     <div class="stat-icon">⭐</div>
                     <div class="stat-info">
                         <span class="stat-label">Nivel</span>
                         <span id="level-value" class="stat-value">1</span>
                     </div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card points">
                     <div class="stat-icon">🌿</div>
                     <div class="stat-info">
                         <span class="stat-label">Eco Puntos</span>
                         <span id="eco-points-value" class="stat-value">0</span>
                     </div>
                 </div>
-                <div class="stat-card">
+                <div class="stat-card progress">
                     <div class="stat-icon">🎯</div>
                     <div class="stat-info">
                         <span class="stat-label">Progreso</span>
@@ -39,23 +48,26 @@
             </div>
         </header>
 
-        <!-- EcoBot con animación mejorada -->
         <div class="ecobot-container">
             <div class="ecobot-avatar">
                 <div class="robot-body">🤖</div>
                 <div class="robot-antenna"></div>
+                <div class="robot-glow"></div>
             </div>
             <div class="ecobot-bubble">
+                <div class="bubble-header">
+                    <span class="bubble-title">EcoBot te dice:</span>
+                    <span class="bubble-icon">💬</span>
+                </div>
                 <p id="ecobot-message">Cargando...</p>
             </div>
         </div>
 
-        <!-- Layout mejorado con mapa más grande -->
         <div class="game-main">
             <div class="map-section">
-                <!-- Mapa más grande y responsive -->
                 <div class="map-container">
-                    <h2 class="section-title">Mapa Interactivo</h2>
+                    <h2 class="section-title">🗺️ Mapa Interactivo</h2>
+                    <p class="section-subtitle">Haz clic en las zonas para comenzar misiones</p>
                     <canvas id="game-canvas"></canvas>
                     <div class="map-legend">
                         <span class="legend-item"><span class="legend-dot unlocked"></span> Disponible</span>
@@ -64,45 +76,65 @@
                     </div>
                 </div>
 
-                <!-- Panel de premios y quiz debajo del mapa -->
-                <div class="rewards-quiz-section">
+                <div class="rewards-section">
                     <div class="rewards-panel">
-                        <h3>🏆 Premios Desbloqueados</h3>
-                        <div id="rewards-list" class="rewards-list">
-                            <p class="empty-state">Completa misiones para desbloquear premios</p>
-                        </div>
-                    </div>
-                    
-                    <div class="quiz-panel">
-                        <h3>❓ Quiz Rápido</h3>
-                        <div id="quiz-content" class="quiz-content">
-                            <p class="quiz-question" id="quiz-question">¿Qué fuente de energía es renovable?</p>
-                            <div class="quiz-options">
-                                <button class="quiz-option" data-answer="correct">Energía Solar</button>
-                                <button class="quiz-option" data-answer="wrong">Carbón</button>
-                                <button class="quiz-option" data-answer="wrong">Petróleo</button>
-                                <button class="quiz-option" data-answer="wrong">Gas Natural</button>
-                            </div>
-                            <p id="quiz-feedback" class="quiz-feedback"></p>
+                        <h3>🏅 Insignias EcoExploradores</h3>
+                        <p class="panel-subtitle">Colecciona insignias completando misiones</p>
+                        <div id="rewards-list" class="rewards-grid">
+                            <p class="empty-state">Completa misiones para ganar insignias</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Panel lateral rediseñado -->
             <div class="sidebar">
-                <div class="zones-panel">
-                    <h2>Zonas del Mapa</h2>
-                    <div id="zones-list" class="zones-list"></div>
+                <div class="checklist-panel">
+                    <h2>📋 Retos Diarios</h2>
+                    <p class="panel-subtitle">Completa estos retos para cuidar el medio ambiente</p>
+                    <div id="checklist-items" class="checklist-items">
+                        <label class="checklist-item">
+                            <input type="checkbox" class="checklist-checkbox">
+                            <span class="checklist-text">Apagar luces al salir de una habitación</span>
+                        </label>
+                        <label class="checklist-item">
+                            <input type="checkbox" class="checklist-checkbox">
+                            <span class="checklist-text">Desconectar cargadores no usados</span>
+                        </label>
+                        <label class="checklist-item">
+                            <input type="checkbox" class="checklist-checkbox">
+                            <span class="checklist-text">Usar transporte sostenible</span>
+                        </label>
+                        <label class="checklist-item">
+                            <input type="checkbox" class="checklist-checkbox">
+                            <span class="checklist-text">Reciclar correctamente</span>
+                        </label>
+                        <label class="checklist-item">
+                            <input type="checkbox" class="checklist-checkbox">
+                            <span class="checklist-text">Reducir el uso de plástico</span>
+                        </label>
+                    </div>
                 </div>
-                
+
+                <div class="quiz-panel">
+                    <h2>❓ Quiz Rápido</h2>
+                    <div id="quiz-content" class="quiz-content">
+                        <p class="quiz-question" id="quiz-question">¿Qué fuente de energía es renovable?</p>
+                        <div class="quiz-options">
+                            <button class="quiz-option" data-answer="correct">Energía Solar</button>
+                            <button class="quiz-option" data-answer="wrong">Carbón</button>
+                            <button class="quiz-option" data-answer="wrong">Petróleo</button>
+                            <button class="quiz-option" data-answer="wrong">Gas Natural</button>
+                        </div>
+                        <p id="quiz-feedback" class="quiz-feedback"></p>
+                    </div>
+                </div>
+
                 <div class="controls-panel">
-                    <button id="reset-btn" class="btn btn-danger">Reiniciar Juego</button>
+                    <button id="reset-btn" class="btn btn-danger">🔄 Reiniciar Juego</button>
                 </div>
             </div>
         </div>
 
-        <!-- Modal de misión mejorado con mensajes de inicio -->
         <div id="mission-modal" class="modal hidden">
             <div class="modal-overlay"></div>
             <div class="modal-content">
@@ -116,17 +148,13 @@
                         <span class="intro-robot">🤖</span>
                         <p id="mission-intro-text">Mensaje de inicio...</p>
                     </div>
-                    <button id="start-mission-btn" class="btn btn-primary">Comenzar Misión</button>
+                    <button id="start-mission-btn" class="btn btn-primary btn-large">🚀 Comenzar Misión</button>
                 </div>
                 
                 <div class="mission-gameplay hidden" id="mission-gameplay">
                     <p id="mission-description" class="mission-description">Descripción de la misión</p>
                     
                     <div class="mission-stats">
-                        <div class="mission-stat">
-                            <span class="stat-icon">⏱️</span>
-                            <span>Tiempo: <strong id="mission-timer">30</strong>s</span>
-                        </div>
                         <div class="mission-stat">
                             <span class="stat-icon">📊</span>
                             <span>Progreso: <strong id="mission-progress">0</strong>/<strong id="mission-target">5</strong></span>
@@ -138,7 +166,6 @@
             </div>
         </div>
 
-        <!-- Modal de victoria mejorado -->
         <div id="victory-modal" class="modal hidden">
             <div class="modal-overlay"></div>
             <div class="modal-content victory-content">
@@ -146,7 +173,7 @@
                     <div class="trophy">🏆</div>
                     <div class="confetti"></div>
                 </div>
-                <h2>¡Felicidades, Guardián del Planeta!</h2>
+                <h2 class="victory-title">¡Felicidades, Guardián del Planeta!</h2>
                 <p class="victory-subtitle">Has completado todas las misiones de EcoMission</p>
                 
                 <div class="victory-stats">
@@ -179,11 +206,10 @@
                     <p class="final-message">Cada acción cuenta. ¡Sigue cuidando tu mundo!</p>
                 </div>
                 
-                <button id="play-again-btn" class="btn btn-primary btn-large">Jugar de Nuevo</button>
+                <button id="play-again-btn" class="btn btn-primary btn-large">🎮 Jugar de Nuevo</button>
             </div>
         </div>
 
-        <!-- Modal de completar misión -->
         <div id="completion-modal" class="modal hidden">
             <div class="modal-overlay"></div>
             <div class="modal-content completion-content">
@@ -203,3 +229,5 @@
     <script src="game.js"></script>
 </body>
 </html>
+
+

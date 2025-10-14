@@ -4,7 +4,6 @@ let gameState = null
 let canvas = null
 let ctx = null
 let mapImage = null
-const playerSprite = null
 let updateInterval = null
 
 const rewards = []
@@ -59,6 +58,7 @@ async function initGame() {
 
   // Cargar imagen del mapa
   mapImage = new Image()
+  mapImage.crossOrigin = "anonymous"
   mapImage.src = "assets/map.png"
   mapImage.onload = () => {
     console.log("[v0] Mapa cargado")
@@ -81,24 +81,18 @@ function resizeCanvas() {
   const container = canvas.parentElement
   const width = container.clientWidth - 40
   canvas.width = width
-  canvas.height = width * 0.6 // Mantener aspect ratio
+  canvas.height = width * 0.6
   drawGame()
 }
 
 function setupControls() {
-  // Controles de teclado
   document.addEventListener("keydown", handleKeyPress)
-
-  // Click en canvas
   canvas.addEventListener("click", handleCanvasClick)
 
-  // Botones
   document.getElementById("reset-btn").addEventListener("click", resetGame)
   document.getElementById("close-mission-btn").addEventListener("click", closeMissionModal)
   document.getElementById("play-again-btn").addEventListener("click", resetGame)
-
   document.getElementById("start-mission-btn").addEventListener("click", startMissionGameplay)
-
   document.getElementById("continue-btn").addEventListener("click", closeCompletionModal)
 
   setupQuiz()
@@ -151,8 +145,10 @@ function handleQuizAnswer(e) {
   if (selectedIndex === currentQuiz.correct) {
     feedback.textContent = "¡Correcto! +10 Eco Puntos"
     feedback.className = "quiz-feedback correct"
-    gameState.eco_points += 10
-    updateUI()
+    if (gameState) {
+      gameState.eco_points += 10
+      updateUI()
+    }
   } else {
     feedback.textContent = "Incorrecto. ¡Sigue aprendiendo!"
     feedback.className = "quiz-feedback wrong"
@@ -164,27 +160,45 @@ function handleQuizAnswer(e) {
 function drawGame() {
   if (!ctx || !canvas) return
 
-  // Limpiar canvas
   ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-  // Dibujar mapa
   if (mapImage && mapImage.complete) {
     ctx.drawImage(mapImage, 0, 0, canvas.width, canvas.height)
   } else {
-    // Fondo de respaldo
     ctx.fillStyle = "#87CEEB"
     ctx.fillRect(0, 0, canvas.width, canvas.height)
   }
 
-  // Dibujar zonas
   if (gameState) {
+    let nextZoneId = null
+    const zoneOrder = ["casa", "solar", "fabrica", "rio", "ciudad"]
+    for (const zId of zoneOrder) {
+      if (gameState.zones[zId].unlocked && !gameState.zones[zId].completed) {
+        nextZoneId = zId
+        break
+      }
+    }
+
     for (const [zoneId, coords] of Object.entries(zoneCoordinates)) {
       const zone = gameState.zones[zoneId]
       const x = (coords.x / 100) * canvas.width
       const y = (coords.y / 100) * canvas.height
       const radius = (coords.radius / 100) * canvas.width
 
-      // Círculo de zona
+      if (zoneId === nextZoneId) {
+        ctx.save()
+        ctx.shadowColor = "#FFD700"
+        ctx.shadowBlur = 30
+        ctx.shadowOffsetX = 0
+        ctx.shadowOffsetY = 0
+
+        ctx.beginPath()
+        ctx.arc(x, y, radius + 10, 0, Math.PI * 2)
+        ctx.fillStyle = "rgba(255, 215, 0, 0.3)"
+        ctx.fill()
+        ctx.restore()
+      }
+
       ctx.beginPath()
       ctx.arc(x, y, radius, 0, Math.PI * 2)
 
@@ -197,27 +211,30 @@ function drawGame() {
       }
 
       ctx.fill()
-      ctx.strokeStyle = zone.unlocked ? "#28a745" : "#6c757d"
-      ctx.lineWidth = 3
-      ctx.stroke()
 
-      // Icono de zona
-      ctx.font = `${radius}px Arial`
-      ctx.textAlign = "center"
-      ctx.textBaseline = "middle"
+      if (zoneId === nextZoneId) {
+        ctx.strokeStyle = "#FFD700"
+        ctx.lineWidth = 5
+      } else {
+        ctx.strokeStyle = zone.unlocked ? "#28a745" : "#6c757d"
+        ctx.lineWidth = 3
+      }
+      ctx.stroke()
 
       const icons = {
         casa: "🏠",
         solar: "☀️",
         fabrica: "🏭",
         rio: "💧",
-        ciudad: "🏙️",
+        ciudad: "🌆",
       }
 
+      ctx.font = `${radius}px Arial`
+      ctx.textAlign = "center"
+      ctx.textBaseline = "middle"
       ctx.fillText(icons[zoneId] || "❓", x, y)
     }
 
-    // Dibujar jugador (EcoBot)
     const playerX = (gameState.player_position.x / 100) * canvas.width
     const playerY = (gameState.player_position.y / 100) * canvas.height
 
@@ -243,53 +260,36 @@ async function updateGameState() {
 function updateUI() {
   if (!gameState) return
 
-  // Actualizar stats
+  document.getElementById("energy-value").textContent = gameState.energy
   document.getElementById("level-value").textContent = gameState.level
   document.getElementById("eco-points-value").textContent = gameState.eco_points
   document.getElementById("missions-completed-value").textContent = `${gameState.missions_completed}/5`
-
-  // Actualizar mensaje de EcoBot
   document.getElementById("ecobot-message").textContent = gameState.ecobot_message
 
-  // Actualizar lista de zonas
-  updateZonesList()
-
   updateRewards()
-}
-
-function updateZonesList() {
-  const zonesList = document.getElementById("zones-list")
-  zonesList.innerHTML = ""
-
-  for (const [zoneId, zone] of Object.entries(gameState.zones)) {
-    const zoneItem = document.createElement("div")
-    zoneItem.className = "zone-item"
-    zoneItem.textContent = `${zoneId.charAt(0).toUpperCase() + zoneId.slice(1)}: ${zone.completed ? "Completada" : zone.unlocked ? "Desbloqueada" : "Bloqueada"}`
-    zonesList.appendChild(zoneItem)
-  }
 }
 
 function updateRewards() {
   const rewardsList = document.getElementById("rewards-list")
 
+  if (!rewardsList) return
+
   if (rewards.length === 0) {
-    rewardsList.innerHTML = '<p class="empty-state">Completa misiones para desbloquear premios</p>'
+    rewardsList.innerHTML = '<p class="empty-state">Completa misiones para ganar insignias</p>'
     return
   }
 
   rewardsList.innerHTML = ""
 
   rewards.forEach((reward) => {
-    const rewardItem = document.createElement("div")
-    rewardItem.className = "reward-item"
-    rewardItem.innerHTML = `
-      <div class="reward-icon-display">${reward.icon}</div>
-      <div class="reward-info">
-        <h4>${reward.name}</h4>
-        <p>${reward.description}</p>
-      </div>
+    const badge = document.createElement("div")
+    badge.className = "reward-badge"
+    badge.innerHTML = `
+      <span class="badge-icon">${reward.icon}</span>
+      <div class="badge-name">${reward.name}</div>
+      <div class="badge-description">${reward.description}</div>
     `
-    rewardsList.appendChild(rewardItem)
+    rewardsList.appendChild(badge)
   })
 }
 
@@ -318,7 +318,6 @@ async function movePlayer(direction) {
     const data = await response.json()
     gameState.player_position = data.position
     drawGame()
-    checkZoneProximity()
   } catch (error) {
     console.error("[v0] Error al mover jugador:", error)
   }
@@ -329,7 +328,6 @@ function handleCanvasClick(e) {
   const x = ((e.clientX - rect.left) / canvas.width) * 100
   const y = ((e.clientY - rect.top) / canvas.height) * 100
 
-  // Verificar si hizo click en una zona
   for (const [zoneId, coords] of Object.entries(zoneCoordinates)) {
     const distance = Math.sqrt(Math.pow(x - coords.x, 2) + Math.pow(y - coords.y, 2))
 
@@ -340,52 +338,34 @@ function handleCanvasClick(e) {
   }
 }
 
-function checkZoneProximity() {
-  if (!gameState) return
-
-  const playerX = gameState.player_position.x
-  const playerY = gameState.player_position.y
-
-  for (const [zoneId, coords] of Object.entries(zoneCoordinates)) {
-    const distance = Math.sqrt(Math.pow(playerX - coords.x, 2) + Math.pow(playerY - coords.y, 2))
-
-    if (distance < coords.radius + 5) {
-      // Cerca de una zona
-      if (gameState.zones[zoneId].unlocked && !gameState.zones[zoneId].completed) {
-        // Mostrar indicador
-        console.log(`[v0] Cerca de zona: ${zoneId}`)
-      }
-    }
-  }
-}
-
 function showMissionModal(mission, introMessage) {
   const modal = document.getElementById("mission-modal")
 
   document.getElementById("mission-title").textContent = mission.title
   document.getElementById("mission-description").textContent = mission.description
   document.getElementById("mission-target").textContent = mission.target
-  document.getElementById("mission-timer").textContent = mission.time_limit
   document.getElementById("mission-progress").textContent = "0"
-  document.getElementById("mission-intro-text").textContent = introMessage
 
-  // Mostrar intro, ocultar gameplay
-  document.getElementById("mission-intro").classList.remove("hidden")
-  document.getElementById("mission-gameplay").classList.add("hidden")
+  const welcomeMessages = {
+    casa: "🏠 ¡Hola, EcoHéroe! Veo que estás listo para tu primera misión. Las pequeñas acciones hacen grandes cambios. ¿Sabías que apagar las luces puede ahorrar hasta 20% de energía? ¡Vamos a demostrarlo!",
+    solar:
+      "♻️ ¡Excelente progreso! Ahora aprenderemos sobre reciclaje. Separar correctamente los residuos es fundamental para un planeta limpio. ¡Cada elemento en su lugar correcto!",
+    fabrica:
+      "🏭 ¡Impresionante avance! Es momento de poner a prueba tu conocimiento. La información es poder, y tú estás acumulando mucho poder verde. ¡Demuestra lo que sabes!",
+    rio: "💧 ¡Casi lo logras! El agua es vida y energía. Vamos a aprender cómo aprovecharla de forma sostenible. ¡Conecta todo correctamente!",
+    ciudad:
+      "🌆 ¡Última misión, campeón! Las ciudades del futuro dependen de decisiones inteligentes hoy. Tú tienes el poder de crear ese cambio. ¡Adelante!",
+  }
 
-  modal.classList.remove("hidden")
+  document.getElementById("mission-intro-text").textContent = welcomeMessages[mission.zone_id] || introMessage
 
-  // Guardar misión actual
-  window.currentMission = mission
-}
-
-function startMissionGameplay() {
   document.getElementById("mission-intro").classList.add("hidden")
   document.getElementById("mission-gameplay").classList.remove("hidden")
 
-  const mission = window.currentMission
+  modal.classList.remove("hidden")
 
-  // Generar juego según tipo
+  window.currentMission = mission
+
   const gameArea = document.getElementById("mission-game-area")
   gameArea.innerHTML = ""
 
@@ -393,23 +373,49 @@ function startMissionGameplay() {
     case "click_game":
       generateClickGame(gameArea, mission)
       break
+    case "drag_drop":
+      generateDragDropGame(gameArea, mission)
+      break
+    case "multiple_choice":
+      generateMultipleChoiceGame(gameArea, mission)
+      break
     case "sequence_game":
       generateSequenceGame(gameArea, mission)
       break
     case "slider_game":
       generateSliderGame(gameArea, mission)
       break
-    case "balance_game":
-      generateBalanceGame(gameArea, mission)
+  }
+}
+
+function startMissionGameplay() {
+  document.getElementById("mission-intro").classList.add("hidden")
+  document.getElementById("mission-gameplay").classList.remove("hidden")
+
+  const mission = window.currentMission
+  const gameArea = document.getElementById("mission-game-area")
+  gameArea.innerHTML = ""
+
+  switch (mission.type) {
+    case "click_game":
+      generateClickGame(gameArea, mission)
+      break
+    case "drag_drop":
+      generateDragDropGame(gameArea, mission)
+      break
+    case "multiple_choice":
+      generateMultipleChoiceGame(gameArea, mission)
+      break
+    case "sequence_game":
+      generateSequenceGame(gameArea, mission)
+      break
+    case "slider_game":
+      generateSliderGame(gameArea, mission)
       break
   }
-
-  // Iniciar temporizador
-  startMissionTimer(mission)
 }
 
 function generateClickGame(container, mission) {
-  // Juego de apagar luces o limpiar nubes
   const isLights = mission.zone_id === "casa"
 
   for (let i = 0; i < mission.target; i++) {
@@ -433,9 +439,189 @@ function generateClickGame(container, mission) {
   }
 }
 
+function generateDragDropGame(container, mission) {
+  container.className = "mission-game-area recycling-game"
+
+  const instructions = document.createElement("div")
+  instructions.className = "game-instructions"
+  instructions.innerHTML = `
+    <h3>♻️ Juego de Reciclaje</h3>
+    <p>Arrastra cada elemento al contenedor correcto. Debes clasificar todos los elementos para completar la misión.</p>
+  `
+  container.appendChild(instructions)
+
+  const items = [
+    { id: "plastic-bottle", icon: "🍾", type: "plastic", name: "Botella de plástico" },
+    { id: "paper", icon: "📄", type: "paper", name: "Papel" },
+    { id: "glass", icon: "🍷", type: "glass", name: "Vidrio" },
+    { id: "metal-can", icon: "🥫", type: "metal", name: "Lata de metal" },
+    { id: "organic", icon: "🍎", type: "organic", name: "Residuo orgánico" },
+  ]
+
+  const bins = [
+    { type: "plastic", icon: "♻️", label: "Plástico", color: "#FFD700" },
+    { type: "paper", icon: "📦", label: "Papel", color: "#4682B4" },
+    { type: "glass", icon: "🔷", label: "Vidrio", color: "#90EE90" },
+    { type: "metal", icon: "⚙️", label: "Metal", color: "#C0C0C0" },
+    { type: "organic", icon: "🌱", label: "Orgánico", color: "#8B4513" },
+  ]
+
+  const itemsContainer = document.createElement("div")
+  itemsContainer.className = "items-container"
+
+  items.forEach((item) => {
+    const itemEl = document.createElement("div")
+    itemEl.className = "draggable-item"
+    itemEl.draggable = true
+    itemEl.dataset.type = item.type
+    itemEl.dataset.id = item.id
+    itemEl.innerHTML = `
+      <span class="item-icon">${item.icon}</span>
+      <span class="item-name">${item.name}</span>
+    `
+
+    itemEl.addEventListener("dragstart", (e) => {
+      e.dataTransfer.setData("type", item.type)
+      e.dataTransfer.setData("id", item.id)
+      itemEl.classList.add("dragging")
+    })
+
+    itemEl.addEventListener("dragend", () => {
+      itemEl.classList.remove("dragging")
+    })
+
+    itemsContainer.appendChild(itemEl)
+  })
+
+  const binsContainer = document.createElement("div")
+  binsContainer.className = "bins-container"
+
+  bins.forEach((bin) => {
+    const binEl = document.createElement("div")
+    binEl.className = "drop-zone"
+    binEl.dataset.type = bin.type
+    binEl.innerHTML = `
+      <div class="drop-zone-icon">${bin.icon}</div>
+      <div class="drop-zone-label">${bin.label}</div>
+      <div class="drop-zone-count">0/${items.filter((i) => i.type === bin.type).length}</div>
+    `
+
+    binEl.addEventListener("dragover", (e) => {
+      e.preventDefault()
+      binEl.classList.add("drag-over")
+    })
+
+    binEl.addEventListener("dragleave", () => {
+      binEl.classList.remove("drag-over")
+    })
+
+    binEl.addEventListener("drop", (e) => {
+      e.preventDefault()
+      binEl.classList.remove("drag-over")
+
+      const itemType = e.dataTransfer.getData("type")
+      const itemId = e.dataTransfer.getData("id")
+      const binType = binEl.dataset.type
+
+      if (itemType === binType) {
+        const draggedItem = document.querySelector(`.draggable-item[data-id="${itemId}"]`)
+        if (draggedItem) {
+          draggedItem.remove()
+          binEl.classList.add("filled")
+
+          const countEl = binEl.querySelector(".drop-zone-count")
+          const currentCount = Number.parseInt(countEl.textContent.split("/")[0]) + 1
+          const totalCount = items.filter((i) => i.type === binType).length
+          countEl.textContent = `${currentCount}/${totalCount}`
+
+          updateMissionProgress()
+
+          showFeedback(binEl, "¡Correcto! ✓", "success")
+        }
+      } else {
+        showFeedback(binEl, "¡Incorrecto! ✗", "error")
+      }
+    })
+
+    binsContainer.appendChild(binEl)
+  })
+
+  container.appendChild(itemsContainer)
+  container.appendChild(binsContainer)
+}
+
+function showFeedback(element, message, type) {
+  const feedback = document.createElement("div")
+  feedback.className = `feedback-message ${type}`
+  feedback.textContent = message
+  element.appendChild(feedback)
+
+  setTimeout(() => {
+    feedback.remove()
+  }, 1500)
+}
+
+function generateMultipleChoiceGame(container, mission) {
+  container.className = "mission-game-area choice-game"
+
+  const questions = [
+    {
+      question: "¿Cuál es la mejor forma de ahorrar energía en casa?",
+      options: ["Apagar luces", "Dejar todo encendido", "Usar más aparatos", "Ignorar el consumo"],
+      correct: 0,
+    },
+    {
+      question: "¿Qué energía NO contamina?",
+      options: ["Carbón", "Solar", "Petróleo", "Gas"],
+      correct: 1,
+    },
+    {
+      question: "¿Cómo reducir el consumo de agua?",
+      options: ["Dejar grifos abiertos", "Duchas cortas", "Regar todo el día", "Lavar con manguera"],
+      correct: 1,
+    },
+  ]
+
+  let currentQuestion = 0
+
+  function showQuestion() {
+    if (currentQuestion >= questions.length) {
+      updateMissionProgress(questions.length)
+      return
+    }
+
+    const q = questions[currentQuestion]
+    container.innerHTML = `
+      <div class="choice-question">${q.question}</div>
+      <div class="choice-options"></div>
+    `
+
+    const optionsContainer = container.querySelector(".choice-options")
+
+    q.options.forEach((option, index) => {
+      const optionEl = document.createElement("div")
+      optionEl.className = "choice-option"
+      optionEl.textContent = option
+
+      optionEl.addEventListener("click", () => {
+        if (index === q.correct) {
+          optionEl.classList.add("correct")
+          currentQuestion++
+          updateMissionProgress(currentQuestion)
+          setTimeout(showQuestion, 1500)
+        } else {
+          optionEl.classList.add("wrong")
+        }
+      })
+
+      optionsContainer.appendChild(optionEl)
+    })
+  }
+
+  showQuestion()
+}
+
 function generateSequenceGame(container, mission) {
-  // Juego de conectar paneles en orden
-  const sequence = []
   const playerSequence = []
 
   for (let i = 0; i < mission.target; i++) {
@@ -451,7 +637,6 @@ function generateSequenceGame(container, mission) {
       this.classList.add("active")
 
       if (playerSequence.length === mission.target) {
-        // Verificar si es correcto (simplificado: cualquier orden es válido)
         updateMissionProgress(mission.target)
       } else {
         updateMissionProgress(playerSequence.length)
@@ -463,7 +648,6 @@ function generateSequenceGame(container, mission) {
 }
 
 function generateSliderGame(container, mission) {
-  // Juego de ajustar máquinas
   for (let i = 0; i < mission.target; i++) {
     const sliderContainer = document.createElement("div")
     sliderContainer.className = "slider-container"
@@ -499,55 +683,7 @@ function generateSliderGame(container, mission) {
   }
 }
 
-function generateBalanceGame(container, mission) {
-  // Juego de mantener balance (simplificado como slider)
-  container.innerHTML = `
-    <div class="slider-container">
-      <label>Flujo de Agua: <span class="slider-value">50</span>%</label>
-      <input type="range" min="0" max="100" value="50" class="balance-slider">
-      <p>Mantén el flujo entre 45% y 55%</p>
-    </div>
-  `
-
-  const slider = container.querySelector(".balance-slider")
-  const valueSpan = container.querySelector(".slider-value")
-  let correctTime = 0
-
-  slider.addEventListener("input", function () {
-    valueSpan.textContent = this.value
-  })
-
-  // Verificar cada segundo
-  const balanceInterval = setInterval(() => {
-    const value = Number.parseInt(slider.value)
-    if (value >= 45 && value <= 55) {
-      correctTime++
-      updateMissionProgress(correctTime)
-
-      if (correctTime >= mission.target) {
-        clearInterval(balanceInterval)
-      }
-    }
-  }, 1000)
-}
-
-let missionTimer = null
 let missionProgress = 0
-
-function startMissionTimer(mission) {
-  let timeLeft = mission.time_limit
-  missionProgress = 0
-
-  missionTimer = setInterval(() => {
-    timeLeft--
-    document.getElementById("mission-timer").textContent = timeLeft
-
-    if (timeLeft <= 0) {
-      clearInterval(missionTimer)
-      failMission()
-    }
-  }, 1000)
-}
 
 function updateMissionProgress(value) {
   if (value !== undefined) {
@@ -561,8 +697,9 @@ function updateMissionProgress(value) {
   const target = Number.parseInt(document.getElementById("mission-target").textContent)
 
   if (missionProgress >= target) {
-    clearInterval(missionTimer)
-    completeMission(true)
+    setTimeout(() => {
+      completeMission(true)
+    }, 500)
   }
 }
 
@@ -582,7 +719,6 @@ async function completeMission(success) {
       showVictoryModal()
     } else {
       showCompletionModal(data.completed_mission, data.message)
-
       addReward(data.completed_mission.zone_id)
     }
 
@@ -598,17 +734,22 @@ function showCompletionModal(mission, message) {
   document.getElementById("completion-modal").classList.remove("hidden")
 }
 
+function closeMissionModal() {
+  document.getElementById("mission-modal").classList.add("hidden")
+  missionProgress = 0
+}
+
 function closeCompletionModal() {
   document.getElementById("completion-modal").classList.add("hidden")
 }
 
 function addReward(zoneId) {
   const rewardData = {
-    casa: { icon: "💡", name: "Experto en Eficiencia", description: "Dominas el ahorro energético en el hogar" },
-    solar: { icon: "☀️", name: "Maestro Solar", description: "Conoces el poder del sol" },
-    fabrica: { icon: "🏭", name: "Optimizador Industrial", description: "Haces la industria más verde" },
-    rio: { icon: "💧", name: "Guardián del Agua", description: "Proteges los recursos hídricos" },
-    ciudad: { icon: "🌆", name: "Arquitecto Verde", description: "Construyes ciudades sostenibles" },
+    casa: { icon: "🏠", name: "Guardián del Hogar", description: "Experto en eficiencia doméstica" },
+    solar: { icon: "☀️", name: "Maestro Solar", description: "Dominas la energía del sol" },
+    fabrica: { icon: "🏭", name: "Optimizador Industrial", description: "Industria verde es posible" },
+    rio: { icon: "💧", name: "Protector del Agua", description: "Guardián de recursos hídricos" },
+    ciudad: { icon: "🌆", name: "Arquitecto Verde", description: "Constructor de ciudades sostenibles" },
   }
 
   if (rewardData[zoneId]) {
@@ -649,18 +790,6 @@ async function handleZoneClick(zoneId) {
   }
 }
 
-function failMission() {
-  alert("¡Se acabó el tiempo! Inténtalo de nuevo.")
-  closeMissionModal()
-}
-
-function closeMissionModal() {
-  if (missionTimer) {
-    clearInterval(missionTimer)
-  }
-  document.getElementById("mission-modal").classList.add("hidden")
-}
-
 function showVictoryModal() {
   document.getElementById("final-level").textContent = gameState.level
   document.getElementById("final-points").textContent = gameState.eco_points
@@ -678,6 +807,7 @@ async function resetGame() {
     await fetch(`${API_URL}/game/reset`, { method: "POST" })
 
     document.getElementById("victory-modal").classList.add("hidden")
+    document.getElementById("completion-modal").classList.add("hidden")
 
     await updateGameState()
 
@@ -687,6 +817,4 @@ async function resetGame() {
   }
 }
 
-// Iniciar cuando carga la página
 document.addEventListener("DOMContentLoaded", initGame)
-
