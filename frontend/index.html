@@ -143,6 +143,15 @@
                     <button id="close-mission-btn" class="close-btn">✕</button>
                 </div>
                 
+                <p id="mission-description" class="mission-description">Descripción</p>
+                
+                <div class="mission-stats">
+                    <div class="mission-stat">
+                        <span class="stat-icon">📊</span>
+                        <span>Progreso: <strong id="mission-progress">0</strong>/<strong id="mission-target">5</strong></span>
+                    </div>
+                </div>
+                
                 <div class="mission-intro" id="mission-intro">
                     <div class="ecobot-intro">
                         <span class="intro-robot">🤖</span>
@@ -150,28 +159,10 @@
                     </div>
                     <button id="start-mission-btn" class="btn btn-primary btn-large">🚀 Comenzar Misión</button>
                 </div>
-            </div>
-        </div>
-
-        <!-- Nuevo modal grande para el juego -->
-        <div id="game-modal" class="modal hidden">
-            <div class="modal-overlay"></div>
-            <div class="modal-content game-modal-content">
-                <div class="mission-header">
-                    <h2 id="game-modal-title">Jugando...</h2>
-                    <button id="close-game-btn" class="close-btn">✕</button>
+                
+                <div class="mission-gameplay hidden" id="mission-gameplay">
+                    <div id="mission-game-area" class="mission-game-area"></div>
                 </div>
-                
-                <p id="game-modal-description" class="mission-description">Descripción del juego</p>
-                
-                <div class="mission-stats">
-                    <div class="mission-stat">
-                        <span class="stat-icon">📊</span>
-                        <span>Progreso: <strong id="game-progress">0</strong>/<strong id="game-target">5</strong></span>
-                    </div>
-                </div>
-                
-                <div id="game-area" class="mission-game-area"></div>
             </div>
         </div>
 
@@ -238,5 +229,6 @@
     <script src="game.js"></script>
 </body>
 </html>
+
 
 

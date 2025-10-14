@@ -137,6 +137,9 @@ def complete_mission():
         return jsonify({"error": "No hay misión activa"}), 400
     
     data = request.json
+    if not data:
+        return jsonify({"error": "Datos inválidos"}), 400
+        
     success = data.get('success', False)
     
     if not success:
@@ -164,10 +167,10 @@ def complete_mission():
     # Mensajes de EcoBot al completar
     completion_messages = {
         "casa": "¡Excelente trabajo! Has reducido el consumo energético un 20%. Dato curioso: Si todos apagáramos las luces innecesarias, ahorraríamos suficiente energía para iluminar una ciudad entera durante un año. 🌎💡",
-        "solar": "¡Perfecto! Los paneles ahora generan energía limpia eficientemente. Dato curioso: En solo una hora, el sol proporciona suficiente energía para abastecer al mundo entero durante un año. ☀️⚡",
-        "fabrica": "¡Increíble! La fábrica ahora es 30% más eficiente y contamina menos. Dato curioso: La industria representa el 40% del consumo energético mundial, pero con optimización podemos reducirlo significativamente. 🏭♻️",
-        "rio": "¡Fantástico! El ecosistema del río está equilibrado y genera energía limpia. Dato curioso: La energía hidroeléctrica es la fuente renovable más utilizada en el mundo, generando el 16% de la electricidad global. 💧🌊",
-        "ciudad": "¡Maravilloso! El aire está más limpio y la gente puede respirar mejor. Dato curioso: Las ciudades verdes con más árboles y menos contaminación tienen habitantes más saludables y felices. 🌆🌳"
+        "solar": "¡Perfecto! Has clasificado correctamente todos los residuos. Dato curioso: Reciclar una tonelada de papel salva 17 árboles y ahorra 4,000 kWh de energía. ♻️🌳",
+        "fabrica": "¡Increíble! Demuestras un gran conocimiento sobre energía sostenible. Dato curioso: La industria representa el 40% del consumo energético mundial, pero con optimización podemos reducirlo significativamente. 🏭♻️",
+        "rio": "¡Fantástico! El sistema hidroeléctrico está funcionando perfectamente. Dato curioso: La energía hidroeléctrica es la fuente renovable más utilizada en el mundo, generando el 16% de la electricidad global. 💧🌊",
+        "ciudad": "¡Maravilloso! Has creado una ciudad sostenible modelo. Dato curioso: Las ciudades verdes con más árboles y menos contaminación tienen habitantes más saludables y felices. 🌆🌳"
     }
     
     game_state["ecobot_message"] = completion_messages.get(zone_id, "¡Misión completada!")

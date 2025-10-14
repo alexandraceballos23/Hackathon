@@ -92,9 +92,8 @@ function setupControls() {
   document.getElementById("reset-btn").addEventListener("click", resetGame)
   document.getElementById("close-mission-btn").addEventListener("click", closeMissionModal)
   document.getElementById("play-again-btn").addEventListener("click", resetGame)
-  document.getElementById("start-mission-btn").addEventListener("click", openGameModal)
+  document.getElementById("start-mission-btn").addEventListener("click", startMissionGameplay)
   document.getElementById("continue-btn").addEventListener("click", closeCompletionModal)
-  document.getElementById("close-game-btn").addEventListener("click", closeGameModal)
 
   setupQuiz()
 }
@@ -411,11 +410,11 @@ function generateDragDropGame(container, mission) {
   container.appendChild(instructions)
 
   const items = [
-    { id: "plastic-bottle", icon: "🍾", type: "plastic", name: "Botella de plástico" },
-    { id: "paper", icon: "📄", type: "paper", name: "Papel" },
-    { id: "glass", icon: "🍷", type: "glass", name: "Vidrio" },
-    { id: "metal-can", icon: "🥫", type: "metal", name: "Lata de metal" },
-    { id: "organic", icon: "🍎", type: "organic", name: "Residuo orgánico" },
+    { id: "plastic-bottle", icon: "🍾", type: "plastic" },
+    { id: "paper", icon: "📄", type: "paper" },
+    { id: "glass", icon: "🍷", type: "glass" },
+    { id: "metal-can", icon: "🥫", type: "metal" },
+    { id: "organic", icon: "🍎", type: "organic" },
   ]
 
   const bins = [
@@ -437,11 +436,10 @@ function generateDragDropGame(container, mission) {
     itemEl.dataset.id = item.id
     itemEl.innerHTML = `
       <span class="item-icon">${item.icon}</span>
-      <span class="item-name">${item.name}</span>
     `
 
     itemEl.addEventListener("dragstart", (e) => {
-      console.log("[v0] Arrastrando:", item.name)
+      console.log("[v0] Arrastrando:", item.id)
       e.dataTransfer.setData("type", item.type)
       e.dataTransfer.setData("id", item.id)
       itemEl.classList.add("dragging")
@@ -661,9 +659,13 @@ function updateMissionProgress(value) {
     missionProgress++
   }
 
-  document.getElementById("game-progress").textContent = missionProgress
+  const progressEl = document.getElementById("mission-progress")
+  if (progressEl) {
+    progressEl.textContent = missionProgress
+  }
 
-  const target = Number.parseInt(document.getElementById("game-target").textContent)
+  const targetEl = document.getElementById("mission-target")
+  const target = targetEl ? Number.parseInt(targetEl.textContent) : 0
 
   if (missionProgress >= target) {
     setTimeout(() => {
@@ -677,16 +679,23 @@ async function completeMission(success) {
     const response = await fetch(`${API_URL}/mission/complete`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ success }),
+      body: JSON.stringify({ success: true }),
     })
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      console.error("[v0] Error del servidor:", errorData)
+      alert(errorData.error || "Error al completar la misión")
+      return
+    }
 
     const data = await response.json()
 
-    closeGameModal()
+    closeMissionModal()
 
     if (data.all_completed) {
       showVictoryModal()
-    } else {
+    } else if (data.completed_mission) {
       showCompletionModal(data.completed_mission, data.message)
       addReward(data.completed_mission.zone_id)
     }
@@ -694,10 +703,16 @@ async function completeMission(success) {
     await updateGameState()
   } catch (error) {
     console.error("[v0] Error al completar misión:", error)
+    alert("Error de conexión. Verifica que el backend esté corriendo.")
   }
 }
 
 function showCompletionModal(mission, message) {
+  if (!mission || !mission.reward) {
+    console.error("[v0] Datos de misión inválidos:", mission)
+    return
+  }
+
   document.getElementById("completion-message").textContent = message
   document.getElementById("reward-points").textContent = `+${mission.reward}`
   document.getElementById("completion-modal").classList.remove("hidden")
@@ -790,25 +805,20 @@ async function resetGame() {
   }
 }
 
-function openGameModal() {
-  console.log("[v0] Abriendo modal de juego")
+function startMissionGameplay() {
+  console.log("[v0] Iniciando gameplay de misión")
 
-  // Cerrar modal de intro
-  document.getElementById("mission-modal").classList.add("hidden")
-
-  // Abrir modal de juego
-  const gameModal = document.getElementById("game-modal")
   const mission = window.currentMission
 
-  document.getElementById("game-modal-title").textContent = mission.title
-  document.getElementById("game-modal-description").textContent = mission.description
-  document.getElementById("game-target").textContent = mission.target
-  document.getElementById("game-progress").textContent = "0"
+  if (!mission) {
+    console.error("[v0] No hay misión actual")
+    return
+  }
 
-  gameModal.classList.remove("hidden")
+  document.getElementById("mission-intro").classList.add("hidden")
+  document.getElementById("mission-gameplay").classList.remove("hidden")
 
-  // Generar el juego
-  const gameArea = document.getElementById("game-area")
+  const gameArea = document.getElementById("mission-game-area")
   gameArea.innerHTML = ""
 
   switch (mission.type) {
@@ -829,12 +839,7 @@ function openGameModal() {
       break
   }
 
-  console.log("[v0] Modal de juego abierto con tipo:", mission.type)
-}
-
-function closeGameModal() {
-  document.getElementById("game-modal").classList.add("hidden")
-  missionProgress = 0
+  console.log("[v0] Gameplay iniciado con tipo:", mission.type)
 }
 
 document.addEventListener("DOMContentLoaded", initGame)
